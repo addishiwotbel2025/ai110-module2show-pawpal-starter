@@ -7,6 +7,60 @@
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+
+## Scenario
+
+A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+
+- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
+- Consider constraints (time available, priority, owner preferences)
+- Produce a daily plan and explain why it chose that plan
+
+Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
+
+adding a pet
+pet - object
+    attributes:
+        name
+        age
+        breed
+        species
+
+the person has a pet, adminsitrates a pet
+person - object
+    attributes:
+        availability
+        prefernces
+
+pet care class:
+    walking dog
+        for how many minutes? threshold
+    feeding dog
+        how many calories? threshold
+    giving medication
+        what are the meds? does it even take one?
+    grooming
+        what time? 
+
+class that basically calculates everything:
+    claculates available hours using time availability form person class then returns amount of hours we need to spend doing activities for the dog
+
+    drops tasks based on priority
+
+
+person:
+    working hours
+    availability ( free time)
+    pet care prefernces
+
+
+have an owner_preference list that appends items from the 4 choices
+log in amount of time and assign a percentage for each task
+
+
+
+
 **b. Design changes**
 
 - Did your design change during implementation?

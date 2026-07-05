@@ -1,15 +1,61 @@
 classDiagram
-    %% Replace the placeholders below with your actual classes, attributes, methods, and relationships.
-    %% Keep this file updated so it matches your final implementation.
+    %% PawPal+ — pet care planning assistant
+    %% Keep this updated so it matches your final implementation.
 
-    class ClassName {
-        +type attribute
-        +method() returnType
+    class Pet {
+        +str name
+        +int age
+        +str breed
+        +str species
     }
 
-    class AnotherClass {
-        +type attribute
-        +method() returnType
+    class Owner {
+        +str name
+        +int available_minutes
+        +dict preferences
     }
 
-    ClassName --> AnotherClass : relationship
+    class Task {
+        +str title
+        +int duration_minutes
+        +Priority priority
+        +str category
+        +str fixed_time
+    }
+
+    class Priority {
+        <<enumeration>>
+        LOW
+        MEDIUM
+        HIGH
+    }
+
+    class ScheduledTask {
+        +Task task
+        +str start_time
+        +str reason
+    }
+
+    class Plan {
+        +list~ScheduledTask~ scheduled
+        +list~Task~ dropped
+        +int total_minutes
+        +explain() str
+    }
+
+    class Scheduler {
+        +Owner owner
+        +Pet pet
+        +list~Task~ tasks
+        +build_plan() Plan
+        +sort_by_priority() list~Task~
+    }
+
+    Owner "1" --> "1" Pet : cares for
+    Scheduler --> Owner : uses constraints
+    Scheduler --> Pet : plans for
+    Scheduler "1" --> "*" Task : schedules
+    Scheduler ..> Plan : produces
+    Plan "1" --> "*" ScheduledTask : contains
+    ScheduledTask --> Task : wraps
+    Task --> Priority : has
