@@ -11,11 +11,13 @@ from models import Owner, Pet, Task, Priority, ScheduledTask, Plan
     }
 '''
 class Scheduler:
+    """Builds a daily care plan from an owner's available time and a task list."""
     def __init__(self, owner, tasks):
         self.owner = owner
         self.tasks = tasks
 
     def sort_by_priority(self):
+        """Return the tasks ordered high to low priority."""
         low, medium, high = [], [], []
 
         for task in self.tasks:                    # ← 1. loop over the tasks
@@ -30,6 +32,7 @@ class Scheduler:
     
 
     def build_plan(self):
+        """Keep tasks that fit the available time (high priority first) and drop the rest."""
         ordered = self.sort_by_priority()      # high → low
         remaining = self.owner.available_minutes
         scheduled = []

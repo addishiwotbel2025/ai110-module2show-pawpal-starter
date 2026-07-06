@@ -5,8 +5,28 @@
 **a. Initial design**
 
 - Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+my initial UML design has classes 
+    pet 
+    owner
+    task
+    priority - ranks priority ad high, medium and low
+    scheduled task - is an object that holds a task and a reason for why it is either added or not added
 
+
+
+- What classes did you include, and what responsibilities did you assign to each?
+    pet and owner define basic attributes such as:
+    pet - name, age, breed, species
+    owner - name, available_minutes
+    task - has the name, duration and priority level of a task
+    priority just labels task as high, medium or low
+    scheduled task carries tasks that are scheduled and reason for their scheduling
+    
+    plan - is used for a good display. it takes in a list of
+        scheduled tasks
+        dropped tasks
+        and explanation for why they were either added or dropped.
+        
 You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
 
 ## Scenario

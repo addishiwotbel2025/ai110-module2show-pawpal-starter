@@ -46,15 +46,18 @@ pip install -r requirements.txt
 
 ## 🖥️ Sample Output
 
-Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
+Running `python main.py` with an owner who has 60 minutes available and three tasks
+(Morning walk 30m/high, Meds 10m/high, Grooming 25m/low) produces:
 
 ```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
+I scheduled Morning walk because duration fits in the scheduled time, it takes 30 minutes
+I scheduled Meds because duration fits in the scheduled time, it takes 10 minutes
+I dropped Grooming — not enough time left
+Total time used: 40 minutes
 ```
+
+The two high-priority tasks (30 + 10 = 40 min) are scheduled first; grooming is dropped
+because only 20 minutes remain and it needs 25.
 
 ## 🧪 Testing PawPal+
 
@@ -69,7 +72,9 @@ pytest --cov
 Sample test output:
 
 ```
-# Paste your pytest output here
+tests/test_pawpal.py::test_mark_complete_changes_status PASSED                                                                                          [ 50%]
+tests/test_pawpal.py::test_add_task_increases_count PASSED
+
 ```
 
 ## 📐 Smarter Scheduling
