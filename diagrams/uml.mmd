@@ -1,6 +1,8 @@
 classDiagram
     %% PawPal+ — pet care planning assistant
     %% Keep this updated so it matches your final implementation.
+    %% Deferred for later (optional): Owner.preferences, Task.category,
+    %% Task.fixed_time, ScheduledTask.start_time, Scheduler.pet
 
     class Pet {
         +str name
@@ -12,15 +14,12 @@ classDiagram
     class Owner {
         +str name
         +int available_minutes
-        +dict preferences
     }
 
     class Task {
         +str title
-        +int duration_minutes
+        +int duration
         +Priority priority
-        +str category
-        +str fixed_time
     }
 
     class Priority {
@@ -32,7 +31,6 @@ classDiagram
 
     class ScheduledTask {
         +Task task
-        +str start_time
         +str reason
     }
 
@@ -45,7 +43,6 @@ classDiagram
 
     class Scheduler {
         +Owner owner
-        +Pet pet
         +list~Task~ tasks
         +build_plan() Plan
         +sort_by_priority() list~Task~
@@ -53,7 +50,6 @@ classDiagram
 
     Owner "1" --> "1" Pet : cares for
     Scheduler --> Owner : uses constraints
-    Scheduler --> Pet : plans for
     Scheduler "1" --> "*" Task : schedules
     Scheduler ..> Plan : produces
     Plan "1" --> "*" ScheduledTask : contains
