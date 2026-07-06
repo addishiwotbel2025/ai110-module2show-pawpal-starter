@@ -1,4 +1,8 @@
 import streamlit as st
+from models import Owner, Pet, Task, Priority
+from scheduler import Scheduler
+
+available_minutes = st.number_input("Available minutes", min_value=1, max_value=1440, value=60)
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -74,15 +78,21 @@ st.subheader("Build Schedule")
 st.caption("This button should call your scheduling logic once you implement it.")
 
 if st.button("Generate schedule"):
-    st.warning(
-        "Not implemented yet. Next step: create your scheduling logic (classes/functions) and call it here."
-    )
-    st.markdown(
-        """
-Suggested approach:
-1. Design your UML (draft).
-2. Create class stubs (no logic).
-3. Implement scheduling behavior.
-4. Connect your scheduler here and display results.
-"""
-    )
+    # translate the stored string priorities into Priority enums
+    PRIORITY_MAP = {"low": Priority.LOW, "medium": Priority.MEDIUM, "high": Priority.HIGH}
+
+    # build the owner from the inputs
+    owner = Owner(owner_name, available_minutes)
+
+    # convert each stored task-dict into a real Task object
+    tasks = []
+    for t in st.session_state.tasks:
+        tasks.append(
+            Task(t["title"], t["duration_minutes"], PRIORITY_MAP[t["priority"]])
+        )
+
+    # run your scheduler and show the explanation
+    plan = Scheduler(owner, tasks).build_plan()
+    st.subheader("Your plan")
+    st.text(plan.explain())
+
