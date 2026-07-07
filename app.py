@@ -1,6 +1,10 @@
 import streamlit as st
+from datetime import time
 from models import Owner, Pet, Task, Priority
 from scheduler import Scheduler
+
+WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+PRIORITY_MAP = {"low": Priority.LOW, "medium": Priority.MEDIUM, "high": Priority.HIGH}
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -46,20 +50,20 @@ pet_name = st.text_input("Pet name", value="Mochi")
 species = st.selectbox("Species", ["dog", "cat", "other"])
 available_minutes = st.number_input("Available minutes", min_value=1, max_value=1440, value=60)
 
-# st.session_state is like a dictionary
+# st.session_state persists objects across Streamlit reruns (like a dictionary)
 if "owner" not in st.session_state:
-    # creating an object
     st.session_state.owner = Owner(owner_name, available_minutes)
-    # creating an object
 if "pet" not in st.session_state:
     st.session_state.pet = Pet(pet_name, 0, "", species)
-    
 
-# then use st.session_state.owner wherever you need it
+# keep the stored objects in sync with the current inputs
+st.session_state.owner.name = owner_name
+st.session_state.owner.available_minutes = available_minutes
+st.session_state.pet.name = pet_name
+st.session_state.pet.species = species
 
 st.markdown("### Tasks")
-st.caption("Add a few tasks. In your final version, these should feed into your scheduler.")
-
+st.caption("Add tasks with an optional fixed start time and recurrence. These feed the scheduler.")
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -69,54 +73,79 @@ with col2:
 with col3:
     priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
 
-# if st.button("Add task"):
-#     st.session_state.tasks.append(
-#         # object isn't getting officially created here.
-#         {"title": task_title, "duration_minutes": int(duration), "priority": priority}
-#     )
+col4, col5, col6 = st.columns(3)
+with col4:
+    has_time = st.checkbox("Fixed start time?")
+    fixed_time = st.time_input("Start time", value=time(8, 0)) if has_time else None
+with col5:
+    frequency = st.selectbox("Frequency", ["once", "daily", "weekly"])
+with col6:
+    weekday = None
+    if frequency == "weekly":
+        weekday = WEEKDAYS.index(st.selectbox("Recurs on", WEEKDAYS))
 
-# now a real object has been created.
 if st.button("Add task"):
-    PRIORITY_MAP = {"low": Priority.LOW, "medium": Priority.MEDIUM, "high": Priority.HIGH}
-    task = Task(task_title, int(duration), PRIORITY_MAP[priority])   # build a Task
-    st.session_state.pet.add_task(task)                             # ← call the method
+    task = Task(
+        task_title, int(duration), PRIORITY_MAP[priority],
+        fixed_time=fixed_time, frequency=frequency, weekday=weekday,
+    )
+    st.session_state.pet.add_task(task)
 
-#building a dictionary from an object dict in st to display it
+# show the current tasks (fixed_time and frequency included)
 if st.session_state.pet.tasks:
     st.write("Current tasks:")
     st.table([
-        {"title": t.title, "duration": t.duration, "priority": t.priority.name}
+        {
+            "title": t.title,
+            "duration": t.duration,
+            "priority": t.priority.name,
+            "time": t.fixed_time.strftime("%H:%M") if t.fixed_time else "—",
+            "frequency": t.frequency,
+            "done": "✅" if t.completed else "",
+        }
         for t in st.session_state.pet.tasks
-         ])
+    ])
+
+    # conflict detection: warn about tasks whose times overlap
+    clashes = Scheduler(st.session_state.owner, st.session_state.pet.tasks).find_conflicts()
+    if clashes:
+        st.warning("⚠️ Time conflicts detected:")
+        for a, b in clashes:
+            st.write(f"- **{a.title}** overlaps **{b.title}**")
 else:
     st.info("No tasks yet. Add one above.")
 
 st.divider()
 
+# completing a task — recurring tasks queue up their next occurrence
+st.subheader("Complete a task")
+st.caption("Marking a daily/weekly task complete automatically queues its next occurrence.")
+open_tasks = [t for t in st.session_state.pet.tasks if not t.completed]
+if open_tasks:
+    labels = [f"{i}: {t.title}" for i, t in enumerate(st.session_state.pet.tasks) if not t.completed]
+    chosen = st.selectbox("Task to complete", labels)
+    if st.button("Mark complete"):
+        idx = int(chosen.split(":", 1)[0])
+        task = st.session_state.pet.tasks[idx]
+        upcoming = st.session_state.pet.complete_task(task)
+        if upcoming is not None:
+            st.success(f"Completed '{task.title}' — queued its next {task.frequency} occurrence.")
+        else:
+            st.success(f"Completed '{task.title}'.")
+        st.rerun()
+else:
+    st.info("Nothing to complete yet.")
+
+st.divider()
+
 st.subheader("Build Schedule")
-st.caption("This button should call your scheduling logic once you implement it.")
+st.caption("Schedules pending tasks, highest priority first, dropping time conflicts and overflow.")
 
 if st.button("Generate schedule"):
     owner = st.session_state.owner
-    plan = Scheduler(owner, st.session_state.pet.tasks).build_plan()   # ← use the pet's tasks
+    # only schedule tasks that aren't done yet (filtering by status)
+    pending = Scheduler(owner, st.session_state.pet.tasks).pending()
+    plan = Scheduler(owner, pending).build_plan()
     st.subheader("Your plan")
     st.text(plan.explain())
-
-    # # translate the stored string priorities into Priority enums
-    # PRIORITY_MAP = {"low": Priority.LOW, "medium": Priority.MEDIUM, "high": Priority.HIGH}
-
-    # # build the owner from the inputs
-    # owner = st.session_state.owner
-
-    # # convert each stored task-dict into a real Task object
-    # tasks = []
-    # for t in st.session_state.pet.tasks:
-    #     tasks.append(
-    #         Task(t["title"], t["duration_minutes"], PRIORITY_MAP[t["priority"]])
-    #     )
-
-    # run your scheduler and show the explanation
-    # plan = Scheduler(owner, tasks).build_plan()
-    # st.subheader("Your plan")
-    # st.text(plan.explain())
 
