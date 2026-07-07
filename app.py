@@ -2,8 +2,6 @@ import streamlit as st
 from models import Owner, Pet, Task, Priority
 from scheduler import Scheduler
 
-available_minutes = st.number_input("Available minutes", min_value=1, max_value=1440, value=60)
-
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 st.title("🐾 PawPal+")
@@ -46,6 +44,13 @@ st.subheader("Quick Demo Inputs (UI only)")
 owner_name = st.text_input("Owner name", value="Jordan")
 pet_name = st.text_input("Pet name", value="Mochi")
 species = st.selectbox("Species", ["dog", "cat", "other"])
+available_minutes = st.number_input("Available minutes", min_value=1, max_value=1440, value=60)
+
+# near the top, after reading the inputs
+if "owner" not in st.session_state:
+    st.session_state.owner = Owner(owner_name, available_minutes)
+
+# then use st.session_state.owner wherever you need it
 
 st.markdown("### Tasks")
 st.caption("Add a few tasks. In your final version, these should feed into your scheduler.")
@@ -82,7 +87,7 @@ if st.button("Generate schedule"):
     PRIORITY_MAP = {"low": Priority.LOW, "medium": Priority.MEDIUM, "high": Priority.HIGH}
 
     # build the owner from the inputs
-    owner = Owner(owner_name, available_minutes)
+    owner = st.session_state.owner
 
     # convert each stored task-dict into a real Task object
     tasks = []
