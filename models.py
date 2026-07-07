@@ -1,4 +1,5 @@
 from enum import Enum
+from datetime import time
 
 class Pet:
     """A pet and the list of care tasks that belong to it."""
@@ -27,12 +28,23 @@ class Owner:
 class Task:
     """A single care task with a duration, priority, and completion status."""
     # category, fixed_time = None
-    def __init__(self, title, duration, priority):
+    def __init__(self, title, duration, priority, fixed_time = None,
+                 frequency = "once", weekday = None):
         self.title = title
         self.duration = duration
         self.priority = priority
+        self.fixed_time = fixed_time
+        # how frequently a task occurs: "once" | "daily" | "weekly"
+        self.frequency = frequency
+        # for weekly tasks, which day it recurs on (0=Mon … 6=Sun); None otherwise
+        self.weekday = weekday
         self.completed = False
-
+        
+    def start_minutes(self):
+            """Start time as minutes past midnight; None if the task is flexible."""
+            if self.fixed_time is None:
+                return None
+            return self.fixed_time.hour * 60 + self.fixed_time.minute
 
     def mark_complete(self):
         """Mark this task as completed."""
@@ -74,8 +86,8 @@ class Plan:
                 f"I scheduled {st.task.title} because {st.reason}, "
                 f"it takes {st.task.duration} minutes"
             )
-        for task in self.dropped:
-            lines.append(f"I dropped {task.title} — not enough time left")
+        for task, reason in self.dropped:
+            lines.append(f"I dropped {task.title} — {reason}")
         lines.append(f"Total time used: {self.total_minutes} minutes")
         return "\n".join(lines)
 

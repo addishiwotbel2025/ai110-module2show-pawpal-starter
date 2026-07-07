@@ -79,14 +79,54 @@ tests/test_pawpal.py::test_add_task_increases_count PASSED
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
+Most of what used to feel *manual* came from one gap: a `Task` only knew its
+`title`, `duration`, `priority`, and `completed` status. Adding a start time
+(`fixed_time`) and a `frequency` to `Task` unlocked the four features below.
 
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Feature | Method(s) | Status |
+|---------|-----------|--------|
+| Sorting by priority | `Scheduler.sort_by_priority()` | ✅ Implemented |
+| Sorting by time | `Scheduler.sort_by_time()` | ✅ Implemented |
+| Filtering by completion status | `Scheduler.pending()` | ✅ Implemented |
+| Filtering by pet | `Scheduler.for_pet(pet)` | ✅ Implemented |
+| Conflict detection | `Scheduler.conflicts(a, b)`, `Scheduler.find_conflicts()` | ✅ Implemented |
+| Recurring tasks | `Task.frequency`, `Task.weekday`, `Scheduler.tasks_for_day(weekday)` | ✅ Implemented (once / daily / weekly) |
+
+### Sorting
+
+- **`Scheduler.sort_by_priority()`** — returns tasks ordered HIGH → MEDIUM → LOW.
+  Uses a dict-bucket sort (one bucket per `Priority` member, then walk the enum
+  by `.value` descending). This is O(n) and needs zero changes if a new priority
+  level is added to the enum.
+- **`Scheduler.sort_by_time()`** — returns tasks in chronological order by
+  `Task.start_minutes()` (minutes past midnight). Flexible tasks with no
+  `fixed_time` sort to the end instead of crashing.
+
+### Filtering
+
+- **`Scheduler.pending()`** — returns only tasks where `completed == False`, so
+  finished tasks don't get re-scheduled.
+- **`Scheduler.for_pet(pet)`** — returns only the tasks belonging to a given pet,
+  for multi-pet households.
+
+### Conflict detection
+
+- **`Scheduler.conflicts(a, b)`** — two fixed-time tasks overlap when
+  `a.start < b.end and b.start < a.end` (compared in minutes). Flexible tasks
+  (no `fixed_time`) never conflict.
+- **`Scheduler.find_conflicts()`** — sorts fixed-time tasks by start, then
+  compares each task only to its neighbor, so overlaps are found in O(n) after
+  the sort. `build_plan()` uses this logic to drop a task that overlaps one
+  already scheduled (the higher-priority task wins), and `Plan.explain()` reports
+  it, e.g. `I dropped Meds — it overlaps with Walk`.
+
+### Recurring tasks
+
+- **`Task.frequency`** — `"once"`, `"daily"`, or `"weekly"`.
+- **`Task.weekday`** — for weekly tasks, the day they recur on (0=Mon … 6=Sun).
+- **`Scheduler.tasks_for_day(weekday)`** — returns the tasks active on a given day:
+  `daily` tasks always, `once` tasks only until they're completed, and `weekly`
+  tasks only when their `weekday` matches the requested day.
 
 ## 📸 Demo Walkthrough
 

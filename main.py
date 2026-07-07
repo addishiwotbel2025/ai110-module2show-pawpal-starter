@@ -19,3 +19,11 @@ if __name__ == "__main__":
     main()
 
 
+'''
+what feels manual?
+
+    i have to put in morning walk.
+    i have to track times that are clashing with eachother
+    i choose my preferences on my own
+    
+'''

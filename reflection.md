@@ -98,7 +98,36 @@ log in amount of time and assign a percentage for each task
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+
+The tradeoff I thought about most was in `sort_by_priority()`: **time complexity
+vs. readability vs. how much manual editing the code needs to grow.**
+
+My first version used three named lists (`low`, `medium`, `high`), looped once
+over the tasks dropping each into its bucket, and returned `high + medium + low`.
+It was O(n) and fast, but it was 12 lines, and the ordering (`high + medium +
+low`) was hand-written — if I ever added a new priority level, I'd have to edit
+three separate places (a new list, a new `elif`, and the return line).
+
+The obvious "readable" alternative was one line:
+`sorted(self.tasks, key=lambda t: t.priority.value, reverse=True)`. Very clear,
+and it scales to any number of priority levels for free — but sorting is
+O(n log n).
+
+I picked O(n) on principle when it's basically free, but I didn't want to pay for
+it in readability. So I landed on a **dict-bucket** version: build one bucket per
+`Priority` member, drop each task in with an O(1) lookup, then walk the priorities
+in `.value` order. This keeps the O(n) placement of my original code AND scales
+like the one-liner — adding an `URGENT` level to the enum needs zero changes here,
+because the order now comes from the enum instead of a hand-written return line.
+
 - Why is that tradeoff reasonable for this scenario?
+
+Honestly, for a day's worth of pet tasks the O(n) vs. O(n log n) difference is
+invisible — the list is tiny. So the real win wasn't raw speed; it was removing
+the "edit three places to add a priority" tax while staying efficient. Choosing
+the version that is both fast and low-maintenance means the code is less likely
+to break or drift out of sync the next time I extend it, which matters more on a
+small learning project than shaving microseconds.
 
 ---
 
