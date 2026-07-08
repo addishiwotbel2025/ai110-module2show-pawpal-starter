@@ -1,0 +1,79 @@
+classDiagram
+    %% PawPal+ — pet care planning assistant
+    %% FINAL implementation, matching models.py + scheduler.py.
+    %% Still deferred / unused in code: Owner.preferences, Task.category,
+    %% ScheduledTask.start_time.
+
+    class Pet {
+        +str name
+        +int age
+        +str breed
+        +str species
+        +list~Task~ tasks
+        +add_task(task) void
+        +complete_task(task) Task
+    }
+
+    class Owner {
+        +str name
+        +int available_minutes
+    }
+
+    class Task {
+        +str title
+        +int duration
+        +Priority priority
+        +time fixed_time
+        +str frequency
+        +int weekday
+        +bool completed
+        +start_minutes() int
+        +mark_complete() void
+        +next_occurrence() Task
+    }
+
+    class Priority {
+        <<enumeration>>
+        LOW
+        MEDIUM
+        HIGH
+    }
+
+    class ScheduledTask {
+        +Task task
+        +str reason
+    }
+
+    class Plan {
+        +list~ScheduledTask~ scheduled
+        +list dropped
+        +int total_minutes
+        +explain() str
+    }
+
+    class Scheduler {
+        +Owner owner
+        +list~Task~ tasks
+        +sort_by_priority() list~Task~
+        +sort_by_time() list~Task~
+        +pending() list~Task~
+        +for_pet(pet) list~Task~
+        +conflicts(a, b) bool
+        +find_conflicts() list
+        +tasks_for_day(weekday) list~Task~
+        +build_plan() Plan
+    }
+
+    note for Plan "dropped is a list of (Task, reason) pairs"
+
+    Pet "1" o-- "*" Task : has
+    Task --> Priority : has
+    Task ..> Task : next_occurrence() creates
+    Scheduler --> Owner : uses time budget
+    Scheduler "1" --> "*" Task : schedules
+    Scheduler ..> Pet : for_pet() filters
+    Scheduler ..> ScheduledTask : creates
+    Scheduler ..> Plan : produces
+    Plan "1" o-- "*" ScheduledTask : scheduled
+    Plan ..> Task : dropped
+    ScheduledTask --> Task : wraps
