@@ -61,21 +61,48 @@ because only 20 minutes remain and it needs 25.
 
 ## 🧪 Testing PawPal+
 
+Run the automated test suite from the project root:
+
 ```bash
-# Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
+python -m pytest
 ```
 
-Sample test output:
+### What the tests cover
+
+The suite in [`tests/test_pawpal.py`](tests/test_pawpal.py) has **17 tests** across
+the core behaviors, covering both happy paths and edge cases:
+
+- **Basics** — a task can be marked complete; adding a task grows the pet's list.
+- **Sorting** — `sort_by_time()` returns tasks in chronological order and pushes
+  flexible (no fixed time) tasks to the end; `sort_by_priority()` returns HIGH → LOW.
+- **Filtering** — `pending()` excludes completed tasks; `for_pet()` returns only a
+  given pet's tasks.
+- **Conflict detection** — overlapping times are flagged, including **two tasks at
+  the exact same time**; back-to-back tasks do *not* conflict; flexible tasks never
+  conflict.
+- **Recurrence** — completing a **daily** task creates a fresh task for the next day;
+  a **once** task does not recur; `tasks_for_day()` returns the right tasks per weekday.
+- **Plan building (edge cases)** — an empty task list yields an empty plan (no crash);
+  an over-budget task is dropped ("not enough time left"); a conflicting task is
+  dropped in favor of the higher-priority one.
+
+### Successful run
 
 ```
-tests/test_pawpal.py::test_mark_complete_changes_status PASSED                                                                                          [ 50%]
-tests/test_pawpal.py::test_add_task_increases_count PASSED
+collected 17 items
 
+tests/test_pawpal.py .................                                   [100%]
+
+============================== 17 passed in 0.01s ==============================
 ```
+
+### Confidence Level: ⭐️⭐️⭐️⭐️☆ (4 / 5)
+
+The four core behaviors (sorting, filtering, conflict detection, recurrence) are
+each covered by direct tests plus edge cases, and all 17 pass. Docking one star
+because a few areas are still untested/incomplete: weekly recurrence relies on a
+manually set `Task.weekday`, `build_plan()` doesn't yet lay tasks on a real clock
+(it treats the day as a pool of minutes), and owner preferences aren't used yet.
 
 ## 📐 Smarter Scheduling
 

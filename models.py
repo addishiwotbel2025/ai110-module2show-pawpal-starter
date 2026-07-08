@@ -14,6 +14,17 @@ class Pet:
         """Add a Task to this pet's list of care tasks."""
         self.tasks.append(task)
 
+    def complete_task(self, task):
+        """Mark a task complete; if it recurs, add its next occurrence.
+
+        Returns the newly created next task (or None for one-time tasks).
+        """
+        task.mark_complete()
+        upcoming = task.next_occurrence()
+        if upcoming is not None:
+            self.tasks.append(upcoming)
+        return upcoming
+
 # priority is not recommended here, becuase it becomes confusing
 # changed name from availability to availabile_minutes.
 class Owner:
@@ -50,9 +61,18 @@ class Task:
         """Mark this task as completed."""
         self.completed = True
 
-        # not sure about this, category is basically a type of task
-        # self.category = category
-        # self.fixed_time = fixed_time
+    def next_occurrence(self):
+        """Return a fresh, uncompleted copy of this task for its next recurrence.
+
+        Daily and weekly tasks come back for their next day; one-time ("once")
+        tasks do not recur, so this returns None for them.
+        """
+        if self.frequency == "once":
+            return None
+        return Task(
+            self.title, self.duration, self.priority,
+            self.fixed_time, self.frequency, self.weekday,
+        )
         
 
 class Priority(Enum):
